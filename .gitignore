@@ -18,3 +18,5 @@ subscript.txt
 package-lock.json
 package.json
 pesterchum.spec
+.DS_Store
+themes/user
