@@ -28,12 +28,10 @@ def removecolors(texts):
         for i in range(match.start() + 1, match.end()):
             answer[i] = (None, None)
     text = ""
-    iscolour = True
+    iscolour = False
     for (ch, col) in answer:
         if (ch == None):
             continue
-        elif (ch == "|"):
-            iscolour = not iscolour
         else:
             if (iscolour and col != None):
                 text += "<c=" + col + ">" + ch + "</c>"
