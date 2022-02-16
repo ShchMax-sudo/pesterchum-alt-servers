@@ -12,7 +12,6 @@ chunksize = 6
 n = 9173503
 d = 6111579
 e = 3
-# Error: Key Not Found
 
 
 def pow(a, p, n):
@@ -92,17 +91,79 @@ def rsa_keygen():
     return (n, p, q, e, d)
 
 
+def int15(num):
+    preans = []
+    nums = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "A", "B",
+            "C", "D", "E"]
+    while (num != 0):
+        preans.append(nums[num % 15])
+        num //= 15
+    return "".join(list(reversed(preans)))
+
+
+def int15to16(str):
+    d = {
+        "0": "1",
+        "1": "2",
+        "2": "3",
+        "3": "4",
+        "4": "5",
+        "5": "6",
+        "6": "7",
+        "7": "8",
+        "8": "9",
+        "9": "A",
+        "A": "B",
+        "B": "C",
+        "C": "D",
+        "D": "E",
+        "E": "F",
+    }
+    return "".join([d[ch.upper()] for ch in str])
+
+
+def int16to15(str):
+    d = {
+        "1": "0",
+        "2": "1",
+        "3": "2",
+        "4": "3",
+        "5": "4",
+        "6": "5",
+        "7": "6",
+        "8": "7",
+        "9": "8",
+        "A": "9",
+        "B": "A",
+        "C": "B",
+        "D": "C",
+        "E": "D",
+        "F": "E",
+    }
+    return "".join([d[ch.upper()] for ch in str])
+
+
 def strToHex(string):
-    return binascii.hexlify(string.encode("utf-8")).decode("ascii")
+    return int15to16(
+        int15(
+            int(
+                binascii.hexlify(
+                    string.encode("utf-8")
+                ).decode("ascii"), base=16
+            )
+        )
+    )
 
 
 def hexToStr(hexstr):
-    return binascii.unhexlify(hexstr.encode("ascii")).decode("utf-8")
+    return binascii.unhexlify(
+        hex(int(int16to15(hexstr), base=15))[2:].encode("ascii")
+    ).decode("utf-8")
 
 
 def encodeChunk(chunk):
     chunk = int(chunk, base=16)
-    return hex(pow(chunk, e, n))[2:]
+    return (("0" * chunksize) + hex(pow(chunk, e, n))[2:])[-chunksize:]
 
 
 def decodeChunk(chunk):
@@ -110,30 +171,58 @@ def decodeChunk(chunk):
     return hex(pow(chunk, d, n))[2:]
 
 
-def encodeMessage(message, user):
-    return message
+def getKey(user=None):
+    if (user is None):
+        return (d, n)
+    else:
+        return (e, n)
+    _rsadir = ostools.getDataDir() + "rsa/"
+    if (not os.path.exists(_rsadir)):
+        os.mkdir(_rsadir)
+    if (not os.path.exists(_rsadir + user + ".dat")):
+        return (None, None)
+    return tuple(map(int, open(_rsadir + user + ".dat", "w").readlines()))
+
+
+def decodeMessage(message):
     cryptosymbhol = message[0]
     if (cryptosymbhol == dcsymbhol):
         return message[1:]
     elif (cryptosymbhol != ecsymbhol):
         return message
     else:
-        emessage = message[1:]
-        _rsadir = ostools.getDataDir() + "rsa/"
-        if (not os.path.exists(_rsadir)):
-            os.mkdir(_rsadir)
-        if (not os.path.exists(_rsadir + user + ".dat")):
+        cryptedmessage = message[1:]
+        (d, n) = getKey()
+        if (d is None):
             return ErrorKeyNotFound
-        return emessage
+        decryptedmessage = ""
+        for i in range(0, len(cryptedmessage), chunksize):
+            decryptedmessage += decodeChunk(
+                cryptedmessage[i:i + chunksize])
+        return hexToStr(decryptedmessage)
 
 
-def decodeMessage(message, user):
-    return message
+def encodeMessage(message, user):
+    (e, n) = getKey(user)
+    if (e is None):
+        return dcsymbhol + message
+    hexed = strToHex(message)
+    cryptedmessage = ""
+    i = 0
+    while (i < len(hexed)):
+        currentChunk = ""
+        while (i < len(hexed) and int(currentChunk + hexed[i], base=16) < n):
+            currentChunk += hexed[i]
+            i += 1
+        cryptedmessage += encodeChunk(currentChunk)
+    return ecsymbhol + cryptedmessage
 
 
 if (__name__ == "__main__"):
-    message = "Test"
+    message = "TestTestTestWith🔒"
     user = "ShchMax"
-    print(encodeMessage(message, user))
+    cr = encodeMessage(message, user)
+    print(cr)
+    print(decodeMessage(cr))
     print(encodeChunk("123F"))
     print(decodeChunk(encodeChunk("123F")))
