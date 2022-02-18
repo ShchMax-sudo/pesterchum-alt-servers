@@ -728,9 +728,12 @@ class PesterConvo(QtWidgets.QFrame):
     def addMessage(self, msg, me=True):
         print("Message dropped ->", msg)
         is_key = self.encoder.decodeKeys(msg)
-        if (is_key): return
+        if (is_key):
+            print("Received key", None if self.decoder.n == None else hex(self.decoder.n))
+            return
         # HERE CAN BE DONE SOME DECODING STUFF!!!
         #msg = "Angry cucumber"
+        print("Msg key ->", None if self.decoder.n == None else hex(self.decoder.n))
         msg = self.decoder.decodeMessage(msg)
         if type(msg) in [str, str]:
             lexmsg = lexMessage(msg)
@@ -893,7 +896,7 @@ class PesterConvo(QtWidgets.QFrame):
 
     #@QtCore.pyqtSlot()
     def sentCryptoKeys(self):
-        text = self.encoder.encodeKeys()
+        text = self.decoder.encodeKeys()
         return parsetools.kxhandleInput(self, text, flavor="convo", chum=None, quirkable=False)
 
     @QtCore.pyqtSlot()

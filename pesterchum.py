@@ -1697,9 +1697,9 @@ class PesterWindow(MovingWindow):
         else:
             self.newConvoStarted.emit(QString(chum.handle), initiated)
         convoWindow.show()
-        convoWindow.encoder = crypto.Encoder()
         convoWindow.decoder = crypto.Encoder()
-        convoWindow.encoder.rsaKeygen()
+        convoWindow.encoder = crypto.Encoder()
+        convoWindow.decoder.rsaKeygen()
         convoWindow.sentCryptoKeys()
 
     def createTabWindow(self):
