@@ -1698,6 +1698,7 @@ class PesterWindow(MovingWindow):
             self.newConvoStarted.emit(QString(chum.handle), initiated)
         convoWindow.show()
         convoWindow.encoder = crypto.Encoder()
+        convoWindow.decoder = crypto.Encoder()
         convoWindow.encoder.rsaKeygen()
         convoWindow.sentCryptoKeys()
 

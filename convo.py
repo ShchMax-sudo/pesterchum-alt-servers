@@ -674,6 +674,7 @@ class PesterConvo(QtWidgets.QFrame):
         self.newmessage = False
         self.history = PesterHistory()
         self.encoder = None
+        self.decoder = None
 
     def title(self):
         return self.chum.handle
@@ -730,7 +731,7 @@ class PesterConvo(QtWidgets.QFrame):
         if (is_key): return
         # HERE CAN BE DONE SOME DECODING STUFF!!!
         #msg = "Angry cucumber"
-        msg = self.encoder.decodeMessage(msg)
+        msg = self.decoder.decodeMessage(msg)
         if type(msg) in [str, str]:
             lexmsg = lexMessage(msg)
         else:
