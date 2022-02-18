@@ -7,14 +7,13 @@ from random import randint
 dcsymbhol = '🔓'  # Don't encrypted
 ecsymbhol = '🔒'  # Encrypted
 ErrorKeyNotFound = "<c=red>Error: Not found open rsa key</c>"
-# chunksize = 1024 // 16
-chunksize = 6
+chunksize = 1024 // 16
 n = 9173503
 d = 6111579
 e = 3
 
 
-def pow(a, p, n):
+def binPow(a, p, n):
     res = 1
     while (p):
         if (p & 1):
@@ -35,7 +34,7 @@ def factorN(n):
 
 
 def iterTest(a, s, m, n):
-    q = pow(a, m, n)
+    q = binPow(a, m, n)
     if (abs(q) == 1):
         return True
     for i in range(s - 1):
@@ -163,25 +162,35 @@ def hexToStr(hexstr):
 
 def encodeChunk(chunk):
     chunk = int(chunk, base=16)
-    return (("0" * chunksize) + hex(pow(chunk, e, n))[2:])[-chunksize:]
+    return (("0" * chunksize) + hex(binPow(chunk, e, n))[2:])[-chunksize:]
 
 
 def decodeChunk(chunk):
     chunk = int(chunk, base=16)
-    return hex(pow(chunk, d, n))[2:]
+    return hex(binPow(chunk, d, n))[2:]
 
 
 def getKey(user=None):
+    # """
     if (user is None):
         return (d, n)
     else:
         return (e, n)
+    # """
     _rsadir = ostools.getDataDir() + "rsa/"
     if (not os.path.exists(_rsadir)):
         os.mkdir(_rsadir)
+    beg = 0
+    end = 2
+    if (user is None):
+        user = "key"
+    elif (not isinstance(user, str)):
+        user = "key"
+        beg = 2
+        end = 4
     if (not os.path.exists(_rsadir + user + ".dat")):
         return (None, None)
-    return tuple(map(int, open(_rsadir + user + ".dat", "w").readlines()))
+    return list(map(int, open(_rsadir + user + ".dat", "w").readlines()))[beg:end]
 
 
 def decodeMessage(message):
