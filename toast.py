@@ -21,7 +21,7 @@ class DefaultToast(object):
         self.msg     = msg
         self.icon    = icon
     def show(self):
-        print(self.title, self.msg, self.icon)
+        print("Modified output test 1 ->", self.title, self.msg, self.icon)
         self.done()
     def done(self):
         t = self.machine.toasts[0]

@@ -1,5 +1,7 @@
 # Pesterchum :3c
 
+import crypto
+
 import sys
 import os
 import shutil
@@ -1559,6 +1561,7 @@ class PesterWindow(MovingWindow):
             self.closeSignal.emit() # <-- A close signal here on it's own shuts down QT but not the Python and the IRC connection :(
         event.accept()
     def newMessage(self, handle, msg):
+        #print("WWWWWWWWWWWWWWWW", handle, msg)
         if handle in self.config.getBlocklist():
             #yeah suck on this
             self.sendMessage.emit("PESTERCHUM:BLOCKED", handle)
@@ -1694,6 +1697,9 @@ class PesterWindow(MovingWindow):
         else:
             self.newConvoStarted.emit(QString(chum.handle), initiated)
         convoWindow.show()
+        convoWindow.encoder = crypto.Encoder()
+        convoWindow.encoder.rsaKeygen()
+        convoWindow.sentCryptoKeys()
 
     def createTabWindow(self):
         self.tabconvo = PesterTabWindow(self)

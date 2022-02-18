@@ -17,6 +17,7 @@ def reverserep(text):
     return text[::-1]
 reverserep.command = "reverse"
 
+# Removes color from text so it becomes readable after affect of some questionable quirks.
 def removecolors(texts):
     matches = re.finditer("<c=(.+?)>(.+?)</c>", texts)
     answer = [(ch, None) for ch in texts]
@@ -28,14 +29,7 @@ def removecolors(texts):
         for i in range(match.start() + 1, match.end()):
             answer[i] = (None, None)
     text = ""
-    iscolour = False
     for (ch, col) in answer:
-        if (ch == None):
-            continue
-        else:
-            if (iscolour and col != None):
-                text += "<c=" + col + ">" + ch + "</c>"
-            else:
-                text += ch
+        text += ch
     return text
 removecolors.command = "decolor"

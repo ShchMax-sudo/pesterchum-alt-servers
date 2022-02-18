@@ -1,3 +1,5 @@
+from time import sleep
+
 import logging, logging.config
 import ostools
 _datadir = ostools.getDataDir()
@@ -24,6 +26,8 @@ try:
 except ImportError:
     # Fall back on the old location - just in case
     from pnc.dep.attrdict import AttrDict
+
+import crypto
 
 class PesterTabWindow(QtWidgets.QFrame):
     def __init__(self, mainwindow, parent=None, convo="convo"):
@@ -405,6 +409,7 @@ class PesterText(QtWidgets.QTextEdit):
         else:
             time = ""
         if lexmsg[0] == "PESTERCHUM:BEGIN":
+            print("Began messing around")
             parent.setChumOpen(True)
             pmsg = chum.pestermsg(me, systemColor, window.theme["convo/text/beganpester"])
             window.chatlog.log(chum.handle, pmsg)
@@ -432,6 +437,7 @@ class PesterText(QtWidgets.QTextEdit):
             self.append(convertTags(imsg))
         elif type(lexmsg[0]) is mecmd:
             memsg = chum.memsg(systemColor, lexmsg)
+            #print("New message ->", memsg, type(memsg))
             if chum is me:
                 window.chatlog.log(parent.chum.handle, memsg)
             else:
@@ -439,6 +445,7 @@ class PesterText(QtWidgets.QTextEdit):
             self.append(time + convertTags(memsg))
         else:
             if not parent.chumopen and chum is not me:
+                print("Began messing around p2")
                 beginmsg = chum.pestermsg(me, systemColor, window.theme["convo/text/beganpester"])
                 parent.setChumOpen(True)
                 window.chatlog.log(chum.handle, beginmsg)
@@ -659,12 +666,14 @@ class PesterConvo(QtWidgets.QFrame):
         if parent:
             parent.addChat(self)
         if initiated:
+            print("What the f*ck")
             msg = self.mainwindow.profile().pestermsg(self.chum, QtGui.QColor(self.mainwindow.theme["convo/systemMsgColor"]), self.mainwindow.theme["convo/text/beganpester"])
             self.setChumOpen(True)
             self.textArea.append(convertTags(msg))
             self.mainwindow.chatlog.log(self.title(), msg)
         self.newmessage = False
         self.history = PesterHistory()
+        self.encoder = None
 
     def title(self):
         return self.chum.handle
@@ -716,6 +725,12 @@ class PesterConvo(QtWidgets.QFrame):
         PchumLog.debug("convo updateColor: " + str(color))
         self.chum.color = color
     def addMessage(self, msg, me=True):
+        print("Message dropped ->", msg)
+        is_key = self.encoder.decodeKeys(msg)
+        if (is_key): return
+        # HERE CAN BE DONE SOME DECODING STUFF!!!
+        #msg = "Angry cucumber"
+        msg = self.encoder.decodeMessage(msg)
         if type(msg) in [str, str]:
             lexmsg = lexMessage(msg)
         else:
@@ -773,6 +788,7 @@ class PesterConvo(QtWidgets.QFrame):
                 # entirely sure how much of this directly affects what we see.
                 def func():
                     self.showChat()
+                print("HHHHHHHHHHHHHHHHHHHHHHHHHHH", title)
                 self.mainwindow.waitingMessages.addMessage(title, func)
                 if not mutednots:
                     # Once again, PesterMemo inherits from PesterConvo.
@@ -872,7 +888,12 @@ class PesterConvo(QtWidgets.QFrame):
         text = self.textInput.text()
         text = str(self.textInput.text())
 
-        return parsetools.kxhandleInput(self, text, flavor="convo")
+        return parsetools.kxhandleInput(self, text, flavor="convo", chum=self.chum, convo=self)
+
+    #@QtCore.pyqtSlot()
+    def sentCryptoKeys(self):
+        text = self.encoder.encodeKeys()
+        return parsetools.kxhandleInput(self, text, flavor="convo", chum=None, quirkable=False)
 
     @QtCore.pyqtSlot()
     def addThisChum(self):

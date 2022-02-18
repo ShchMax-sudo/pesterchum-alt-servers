@@ -11,6 +11,8 @@ from copy import copy
 from datetime import timedelta
 from PyQt5 import QtCore, QtGui, QtWidgets
 
+import crypto
+
 from generic import mysteryTime
 from quirks import ScriptQuirks
 from pyquirks import PythonQuirks
@@ -629,7 +631,7 @@ def _is_ooc(msg, strict=True):
             return True
     return False
 
-def kxhandleInput(ctx, text=None, flavor=None):
+def kxhandleInput(ctx, text=None, flavor=None, chum=None, quirkable=True, convo=None):
     """The function that user input that should be sent to the server is routed
     through. Handles lexing, splitting, and quirk application, as well as
     sending."""
@@ -643,6 +645,7 @@ def kxhandleInput(ctx, text=None, flavor=None):
         raise ValueError("A flavor is needed to determine suitable logic!")
 
     if text is None:
+        print("None text was about to be sent")
         # Fetch the raw text from the input box.
         text = ctx.textInput.text()
         text = str(ctx.textInput.text())
@@ -650,6 +653,7 @@ def kxhandleInput(ctx, text=None, flavor=None):
     # Preprocessing stuff.
     msg = text.strip()
     if msg == "" or msg.startswith("PESTERCHUM:"):
+        print("System message caught", msg)
         # We don't allow users to send system messages. There's also no
         # point if they haven't entered anything.
         return
@@ -675,6 +679,7 @@ def kxhandleInput(ctx, text=None, flavor=None):
         # that.
         is_ooc = False
         should_quirk = True
+    should_quirk = should_quirk and quirkable
 
     # I'm pretty sure that putting a space before a /me *should* break the
     # /me, but in practice, that's not the case.
@@ -710,7 +715,7 @@ def kxhandleInput(ctx, text=None, flavor=None):
     try:
         # Turns out that Windows consoles can't handle unicode, heh...who'da
         # thunk. We have to repr() this, as such.
-        print(repr(msg))
+        print("MSG REPR HERE ->", repr(msg))
     except Exception as err:
         print("(Couldn't print processed message: {!s})".format(err))
 
@@ -816,9 +821,15 @@ def kxhandleInput(ctx, text=None, flavor=None):
             serverMsg = "<c={1}>{2}: {0}</c>".format(
                     serverMsg, colorcmd, initials)
 
+        # MESSAGE ENCODING CAN BE DONE OVER HERE!!!
+        # clientMsg is a regular python string that can be parsed and encoded.
+        if (chum != None): serverMsg = convo.encoder.encodeMessage(serverMsg, chum.handle)
+        print("What was sent to server ->", serverMsg)
+        print("TITLE ->", ctx.title())
         ctx.addMessage(clientMsg, True)
         if flavor != "menus":
             # If we're not doing quirk testing, actually send.
+            print("Message was sent to server")
             ctx.messageSent.emit(serverMsg, ctx.title())
 
     # Clear the input.
