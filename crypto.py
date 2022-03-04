@@ -191,35 +191,46 @@ class Encoder():
             cryptedmessage += self.encodeChunk(currentChunk)
         return self.ecsymbol + cryptedmessage
 
-    def encodeKeys(self):
+    def encodeKeys(self, myname):
+        es = hex(self.e)[2:]
+        ns = hex(self.n)[2:]
+        checksumm = ""
+        for i in range(5):
+            checksumm += es[int(es[i], base=16)]
+        for i in range(5):
+            checksumm += ns[int(ns[i], base=16)]
         return self.keysymbol \
-            + hex(self.e)[2:] + " " + hex(self.n)[2:] + self.keysymbol
+            + self.strToHex(myname) \
+            + " " \
+            + checksumm \
+            + " " \
+            + es \
+            + " " \
+            + ns \
+            + self.keysymbol
 
-    def decodeKeys(self, message):
+    def decodeKeys(self, message, myname):
         if (message[0] != message[-1] or message[0] != self.keysymbol):
             return False
         e_ = None
         n_ = None
         try:
-            e_, n_ = map(lambda x: int(x, base=16), message[1:-1].split())
+            _, _, e_, n_ = map(lambda x: int(x, base=16),
+                               message[1:-1].split())
         except ValueError:
             return False
         if (e_ is None or n_ is None):
             return False
+        name, ch, es, ns = message[1:-1].split()
+        if (len(ch) != 10):
+            return False
+        for i in range(5):
+            if (es[int(es[i], base=16)] != ch[i]
+               or ns[int(ns[i], base=16)] != ch[i + 5]):
+                return False
+        name = self.hexToStr(name)
+        if (name == myname):
+            return False
         self.e = e_
         self.n = n_
-
-
-if (__name__ == "__main__"):
-    message = "TestTestTestWith🔒"
-    user = "ShchMax"
-    en = Encoder()
-    en.rsaKeygen()
-    cr = en.encodeMessage(message, user)
-    print(cr)
-    print(en.decodeMessage(cr))
-    print(en.encodeChunk("123F"))
-    print(en.decodeChunk(en.encodeChunk("123F")))
-    print(en.encodeKeys())
-    en.decodeKeys(en.encodeKeys())
-    print(en.decodeMessage(cr))
+        return True
