@@ -1701,6 +1701,7 @@ class PesterWindow(MovingWindow):
         convoWindow.encoder = crypto.Encoder()
         convoWindow.decoder.rsaKeygen()
         convoWindow.sentCryptoKeys()
+        convoWindow.sentKeyRequest()
 
     def createTabWindow(self):
         self.tabconvo = PesterTabWindow(self)

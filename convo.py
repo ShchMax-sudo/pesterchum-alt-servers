@@ -1,4 +1,5 @@
 from time import sleep
+from random import randint
 
 import logging, logging.config
 import ostools
@@ -384,6 +385,7 @@ class PesterText(QtWidgets.QTextEdit):
         else:
             self.setStyleSheet("QTextEdit { %s }" % (theme["convo/textarea/style"]))
     def addMessage(self, lexmsg, chum):
+        print("LEXMSG", lexmsg)
         if len(lexmsg) == 0:
             return
         color = chum.colorcmd()
@@ -726,11 +728,17 @@ class PesterConvo(QtWidgets.QFrame):
         PchumLog.debug("convo updateColor: " + str(color))
         self.chum.color = color
     def addMessage(self, msg, me=True):
+        print("HISTORY ->", self.history.history)
         print("Message dropped ->", msg)
-        is_key = self.encoder.decodeKeys(msg)
-        if (is_key):
-            print("Received key", None if self.decoder.n == None else hex(self.decoder.n))
-            return
+        if not me:
+            is_key = self.encoder.decodeKeys(msg)
+            if (is_key):
+                print("Received key", None if self.decoder.n == None else hex(self.decoder.n))
+                return
+            if (self.verifyKeyRequest(msg)):
+                print("Key request detected, sending keys")
+                self.sentCryptoKeys()
+                return
         # HERE CAN BE DONE SOME DECODING STUFF!!!
         #msg = "Angry cucumber"
         print("Msg key ->", None if self.decoder.n == None else hex(self.decoder.n))
@@ -745,6 +753,10 @@ class PesterConvo(QtWidgets.QFrame):
             chum = self.chum
             self.notifyNewMessage()
         self.textArea.addMessage(lexmsg, chum)
+    
+    #TODO Make this function send key request to the other cham.
+    def requestKey():
+        pass
 
     def notifyNewMessage(self):
         # Our imports have to be here to prevent circular import issues.
@@ -898,6 +910,13 @@ class PesterConvo(QtWidgets.QFrame):
     def sentCryptoKeys(self):
         text = self.decoder.encodeKeys()
         return parsetools.kxhandleInput(self, text, flavor="convo", chum=None, quirkable=False)
+
+    def sentKeyRequest(self):
+        text = "👋Hi!👋"
+        return parsetools.kxhandleInput(self, text, flavor="convo", chum=None, quirkable=False)
+    
+    def verifyKeyRequest(self, string):
+        return string == "👋Hi!👋"
 
     @QtCore.pyqtSlot()
     def addThisChum(self):
