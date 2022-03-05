@@ -32,6 +32,7 @@ import crypto
 
 class PesterTabWindow(QtWidgets.QFrame):
     def __init__(self, mainwindow, parent=None, convo="convo"):
+        self.waiting_for_keys = False
         super(PesterTabWindow, self).__init__(parent)
         self.setAttribute(QtCore.Qt.WA_QuitOnClose, False)
         self.setFocusPolicy(QtCore.Qt.ClickFocus)
@@ -736,6 +737,9 @@ class PesterConvo(QtWidgets.QFrame):
             is_key = self.encoder.decodeKeys(msg, self.mainwindow.profile().handle)
             if (is_key):
                 print("Received key", None if self.decoder.n == None else hex(self.decoder.n))
+                if self.waiting_for_keys:
+                    self.sentCryptoKeys()
+                    self.waiting_for_keys = False
                 return
             if (is_key_request):
                 print("Key request detected, sending keys")
@@ -920,6 +924,7 @@ class PesterConvo(QtWidgets.QFrame):
 
     def sentKeyRequest(self):
         text = "👋Hi!👋"
+        self.waiting_for_keys = True
         return parsetools.kxhandleInput(self, text, flavor="convo", chum=None, quirkable=False)
     
     def verifyKeyRequest(self, string):

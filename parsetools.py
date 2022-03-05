@@ -652,7 +652,7 @@ def kxhandleInput(ctx, text=None, flavor=None, chum=None, quirkable=True, convo=
 
     # Preprocessing stuff.
     msg = text.strip()
-    if msg == "" or msg.startswith("PESTERCHUM:"):
+    if msg == "" or (msg.startswith("PESTERCHUM:") and not msg.startswith("PESTERCHUM:BEGIN:CRYPTO:")):
         print("System message caught", msg)
         # We don't allow users to send system messages. There's also no
         # point if they haven't entered anything.
