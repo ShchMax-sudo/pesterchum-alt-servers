@@ -731,7 +731,7 @@ class PesterConvo(QtWidgets.QFrame):
         print("HISTORY ->", self.history.history)
         print("Message dropped ->", msg)
         if not me:
-            is_key = self.encoder.decodeKeys(msg)
+            is_key = self.encoder.decodeKeys(msg, self.mainwindow.profile().handle)
             if (is_key):
                 print("Received key", None if self.decoder.n == None else hex(self.decoder.n))
                 return
@@ -908,7 +908,7 @@ class PesterConvo(QtWidgets.QFrame):
 
     #@QtCore.pyqtSlot()
     def sentCryptoKeys(self):
-        text = self.decoder.encodeKeys()
+        text = self.decoder.encodeKeys(self.chum.handle)
         return parsetools.kxhandleInput(self, text, flavor="convo", chum=None, quirkable=False)
 
     def sentKeyRequest(self):
