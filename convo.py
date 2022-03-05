@@ -385,13 +385,13 @@ class PesterText(QtWidgets.QTextEdit):
             self.setStyleSheet("QTextEdit { %s } QScrollBar:vertical { %s } QScrollBar::handle:vertical { %s } QScrollBar::add-line:vertical { %s } QScrollBar::sub-line:vertical { %s } QScrollBar:up-arrow:vertical { %s } QScrollBar:down-arrow:vertical { %s }" % (theme["convo/textarea/style"], theme["convo/scrollbar/style"], theme["convo/scrollbar/handle"], theme["convo/scrollbar/downarrow"], theme["convo/scrollbar/uparrow"], theme["convo/scrollbar/uarrowstyle"], theme["convo/scrollbar/darrowstyle"] ))
         else:
             self.setStyleSheet("QTextEdit { %s }" % (theme["convo/textarea/style"]))
-    def addMessage(self, lexmsg, chum):
+    def addMessage(self, lexmsg, chum, secured = False):
         print("LEXMSG", lexmsg)
         if len(lexmsg) == 0:
             return
         color = chum.colorcmd()
         systemColor = QtGui.QColor(self.parent().mainwindow.theme["convo/systemMsgColor"])
-        initials = chum.initials()
+        initials = chum.initials() + (" $" if secured else "")
         parent = self.parent()
         window = parent.mainwindow
         me = window.profile()
@@ -765,7 +765,7 @@ class PesterConvo(QtWidgets.QFrame):
         else:
             chum = self.chum
             self.notifyNewMessage()
-        self.textArea.addMessage(lexmsg, chum)
+        self.textArea.addMessage(lexmsg, chum, self.encoder.canEncode())
     
     #TODO Make this function send key request to the other cham.
     def requestKey():
