@@ -730,18 +730,24 @@ class PesterConvo(QtWidgets.QFrame):
     def addMessage(self, msg, me=True):
         print("HISTORY ->", self.history.history)
         print("Message dropped ->", msg)
+        is_key_request = self.verifyKeyRequest(msg)
         if not me:
             is_key = self.encoder.decodeKeys(msg, self.mainwindow.profile().handle)
             if (is_key):
                 print("Received key", None if self.decoder.n == None else hex(self.decoder.n))
                 return
-            if (self.verifyKeyRequest(msg)):
+            if (is_key_request):
                 print("Key request detected, sending keys")
                 self.sentCryptoKeys()
                 return
         # HERE CAN BE DONE SOME DECODING STUFF!!!
         #msg = "Angry cucumber"
+        if self.encoder.decodeKeys(msg, self.chum.handle, isPush = False):
+            return
+        if is_key_request:
+            return
         print("Msg key ->", None if self.decoder.n == None else hex(self.decoder.n))
+        print("Encripted msg ->", msg)
         msg = self.decoder.decodeMessage(msg)
         if type(msg) in [str, str]:
             lexmsg = lexMessage(msg)
