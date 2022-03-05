@@ -410,6 +410,7 @@ class PesterText(QtWidgets.QTextEdit):
                 time += "] "
         else:
             time = ""
+        print("Half-system message caught ->", lexmsg)
         if lexmsg[0] == "PESTERCHUM:BEGIN":
             print("Began messing around")
             parent.setChumOpen(True)
