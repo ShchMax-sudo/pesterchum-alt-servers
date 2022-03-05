@@ -248,7 +248,7 @@ class Encoder():
                or ns[int(ns[i], base=16)] != ch[i + 5]):
                 return False
         name = self.hexToStr(name)
-        if (name == myname):
+        if (name == myname and isPuch):
             return False
         if (isPush):
             self.e = e_
