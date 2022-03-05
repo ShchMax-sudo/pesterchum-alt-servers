@@ -825,7 +825,6 @@ def kxhandleInput(ctx, text=None, flavor=None, chum=None, quirkable=True, convo=
         # clientMsg is a regular python string that can be parsed and encoded.
         if (chum != None): serverMsg = convo.encoder.encodeMessage(serverMsg, chum.handle)
         print("What was sent to server ->", serverMsg)
-        print("TITLE ->", ctx.title())
         ctx.addMessage(clientMsg, True)
         if flavor != "menus":
             # If we're not doing quirk testing, actually send.
