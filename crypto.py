@@ -1,5 +1,3 @@
-import os
-import ostools
 import binascii
 from random import randint
 
@@ -9,11 +7,12 @@ class Encoder():
     ecsymbol = '🔒'   # Encrypted
     keysymbol = '🔑'  # Keys
     chunksize = 64
-    n = None
-    d = None
-    e = None
+    n = None          # Module for RSA system
+    d = None          # Private key
+    e = None          # Public key
 
     def binPow(self, a, p, n):
+        # Binary power for numbers
         res = 1
         while (p):
             if (p & 1):
@@ -25,6 +24,8 @@ class Encoder():
         return res
 
     def factorN(self, n):
+        # This function removes as mush as possible 2-s from
+        # number factorization
         s = 0
         while (n % 2 == 0):
             s += 1
@@ -32,6 +33,7 @@ class Encoder():
         return (s, n)
 
     def iterTest(self, a, s, m, n):
+        # One iteration of Miller-Rabbin test
         q = self.binPow(a, m, n)
         if (abs(q) == 1):
             return True
@@ -42,6 +44,7 @@ class Encoder():
         return False
 
     def isPrime(self, n, k):
+        # Miller-Rabbin prime test
         if (n % 2 == 0):
             return False
         s, m = self.factorN(n - 1)
@@ -51,12 +54,14 @@ class Encoder():
         return True
 
     def primeGen(self, k, size):
+        # This function generates prime size-bit number
         pr = randint((1 << (size - 1)) + 1, (1 << (size)) - 1)
         while (not self.isPrime(pr, k)):
             pr = randint((1 << (size - 1)) + 1, (1 << (size)) - 1)
         return pr
 
     def gcd(self, a, b):
+        # Fast gcd
         if (a == 0):
             x = 0
             y = 1
@@ -67,9 +72,11 @@ class Encoder():
         return (x, y, d)
 
     def inv(self, k, m):
+        # Returns number reciprocal modulo n
         return self.gcd(k, -m)[0] % m
 
     def rsaKeygen(self):
+        # This function generates working rsa keys and module
         p = self.primeGen(30, 128)
         q = self.primeGen(30, 128)
         while (q == p):
@@ -85,6 +92,7 @@ class Encoder():
         self.d = d
 
     def int15(self, num):
+        # This function transforms int to 15 numeric base string
         preans = []
         nums = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "A", "B",
                 "C", "D", "E"]
@@ -94,6 +102,7 @@ class Encoder():
         return "".join(list(reversed(preans)))
 
     def int15to16(self, str):
+        # This function increases by 1 every digit
         d = {
             "0": "1",
             "1": "2",
@@ -114,6 +123,7 @@ class Encoder():
         return "".join([d[ch.upper()] for ch in str])
 
     def int16to15(self, str):
+        # This function degreases by 1 every digit
         d = {
             "1": "0",
             "2": "1",
@@ -134,6 +144,7 @@ class Encoder():
         return "".join([d[ch.upper()] for ch in str])
 
     def strToHex(self, string):
+        # This function converts char string to hex string
         return self.int15to16(
             self.int15(
                 int(
@@ -145,21 +156,25 @@ class Encoder():
         )
 
     def hexToStr(self, hexstr):
+        # This function converts hex string to char string
         return binascii.unhexlify(
             hex(int(self.int16to15(hexstr), base=15))[2:].encode("ascii")
         ).decode("utf-8")
 
     def encodeChunk(self, chunk):
+        # This function encodes one chunk by rsa keys
         chunk = int(chunk, base=16)
         return (("0" * self.chunksize)
                 + hex(self.binPow(chunk,
                                   self.e, self.n))[2:])[-self.chunksize:]
 
     def decodeChunk(self, chunk):
+        # This function decodes one chunk by rsa keys
         chunk = int(chunk, base=16)
         return hex(self.binPow(chunk, self.d, self.n))[2:]
 
     def decodeMessage(self, message):
+        # This function decodes message by rsa keys
         cryptosymbhol = message[0]
         if (cryptosymbhol == self.dcsymbol):
             return message[1:]
@@ -174,9 +189,11 @@ class Encoder():
             return self.hexToStr(decryptedmessage)
 
     def canEncode(self):
+        # This function checks open key existence
         return self.e is not None
 
     def encodeMessage(self, message, user):
+        # This function encodes message by rsa keys
         if (not self.canEncode()):
             return self.dcsymbol + message
         hexed = self.strToHex(message)
@@ -192,6 +209,7 @@ class Encoder():
         return self.ecsymbol + cryptedmessage
 
     def encodeKeys(self, myname):
+        # This function encodes public keys
         es = hex(self.e)[2:]
         ns = hex(self.n)[2:]
         checksumm = ""
@@ -209,7 +227,8 @@ class Encoder():
             + ns \
             + self.keysymbol
 
-    def decodeKeys(self, message, myname):
+    def decodeKeys(self, message, myname, isPush=True):
+        # This function decodes and applyes public keys
         if (message[0] != message[-1] or message[0] != self.keysymbol):
             return False
         e_ = None
@@ -231,6 +250,7 @@ class Encoder():
         name = self.hexToStr(name)
         if (name == myname):
             return False
-        self.e = e_
-        self.n = n_
+        if (isPush):
+            self.e = e_
+            self.n = n_
         return True
