@@ -192,6 +192,7 @@ class Encoder():
     def encodeMessage(self, message, user):
         # This function encodes message by rsa keys
         if (not self.canEncode()):
+            print("Failed to encode message")
             return message
         hexed = self.strToHex(message)
         cryptedmessage = ""

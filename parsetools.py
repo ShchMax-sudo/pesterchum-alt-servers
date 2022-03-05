@@ -823,7 +823,11 @@ def kxhandleInput(ctx, text=None, flavor=None, chum=None, quirkable=True, convo=
 
         # MESSAGE ENCODING CAN BE DONE OVER HERE!!!
         # clientMsg is a regular python string that can be parsed and encoded.
-        if (chum != None): serverMsg = convo.encoder.encodeMessage(serverMsg, chum.handle)
+        print("Server message before ->", serverMsg)
+        if (chum != None): 
+            print("ENcoding message")
+            serverMsg = convo.encoder.encodeMessage(serverMsg, chum.handle)
+        print("Server message after ->", serverMsg)
         print("What was sent to server ->", serverMsg)
         ctx.addMessage(clientMsg, True)
         if flavor != "menus":

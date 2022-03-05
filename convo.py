@@ -731,13 +731,15 @@ class PesterConvo(QtWidgets.QFrame):
         self.chum.color = color
     def addMessage(self, msg, me=True):
         print("HISTORY ->", self.history.history)
-        print("Message dropped ->", msg)
         is_key_request = self.verifyKeyRequest(msg)
         if not me:
+            print("Message dropped ->", msg)
+            print("Trying to decode keys as \"" + self.mainwindow.profile().handle + "\"")
             is_key = self.encoder.decodeKeys(msg, self.mainwindow.profile().handle)
             if (is_key):
                 print("Received key", None if self.decoder.n == None else hex(self.decoder.n))
                 if self.waiting_for_keys:
+                    print("Chum is waiting for keys, so sending protocol activated")
                     self.sentCryptoKeys()
                     self.waiting_for_keys = False
                 return
@@ -920,6 +922,7 @@ class PesterConvo(QtWidgets.QFrame):
     #@QtCore.pyqtSlot()
     def sentCryptoKeys(self):
         text = self.decoder.encodeKeys(self.chum.handle)
+        print("Sent keys marked with \"" + self.chum.handle + "\"")
         return parsetools.kxhandleInput(self, text, flavor="convo", chum=None, quirkable=False)
 
     def sentKeyRequest(self):
