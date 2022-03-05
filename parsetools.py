@@ -631,7 +631,7 @@ def _is_ooc(msg, strict=True):
             return True
     return False
 
-def kxhandleInput(ctx, text=None, flavor=None, chum=None, quirkable=True, convo=None):
+def kxhandleInput(ctx, text=None, flavor=None, chum=None, quirkable=True, convo=None, clearInputNeeded=True):
     """The function that user input that should be sent to the server is routed
     through. Handles lexing, splitting, and quirk application, as well as
     sending."""
@@ -836,7 +836,7 @@ def kxhandleInput(ctx, text=None, flavor=None, chum=None, quirkable=True, convo=
             ctx.messageSent.emit(serverMsg, ctx.title())
 
     # Clear the input.
-    ctx.textInput.setText("")
+    if (clearInputNeeded): ctx.textInput.setText("")
 
 
 def addTimeInitial(string, grammar):

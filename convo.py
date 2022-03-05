@@ -923,12 +923,12 @@ class PesterConvo(QtWidgets.QFrame):
     def sentCryptoKeys(self):
         text = self.decoder.encodeKeys(self.chum.handle)
         print("Sent keys marked with \"" + self.chum.handle + "\"")
-        return parsetools.kxhandleInput(self, text, flavor="convo", chum=None, quirkable=False)
+        return parsetools.kxhandleInput(self, text, flavor="convo", chum=None, quirkable=False, clearInputNeeded=False)
 
     def sentKeyRequest(self):
         text = "👋Hi!👋"
         self.waiting_for_keys = True
-        return parsetools.kxhandleInput(self, text, flavor="convo", chum=None, quirkable=False)
+        return parsetools.kxhandleInput(self, text, flavor="convo", chum=None, quirkable=False, clearInputNeeded=False)
     
     def verifyKeyRequest(self, string):
         return string == "👋Hi!👋"
