@@ -3,7 +3,6 @@ from random import randint
 
 
 class Encoder():
-    dcsymbol = '🔓'   # Don't encrypted
     ecsymbol = '🔒'   # Encrypted
     keysymbol = '🔑'  # Keys
     chunksize = 64
@@ -176,9 +175,7 @@ class Encoder():
     def decodeMessage(self, message):
         # This function decodes message by rsa keys
         cryptosymbhol = message[0]
-        if (cryptosymbhol == self.dcsymbol):
-            return message[1:]
-        elif (cryptosymbhol != self.ecsymbol):
+        if (cryptosymbhol != self.ecsymbol):
             return message
         else:
             cryptedmessage = message[1:]
@@ -195,7 +192,7 @@ class Encoder():
     def encodeMessage(self, message, user):
         # This function encodes message by rsa keys
         if (not self.canEncode()):
-            return self.dcsymbol + message
+            return message
         hexed = self.strToHex(message)
         cryptedmessage = ""
         i = 0
