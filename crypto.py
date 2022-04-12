@@ -178,7 +178,7 @@ class RSAEncoder():
         chunk = int(chunk, base=16)
         return hex(self.binPow(chunk, self.d, self.n))[2:]
 
-    def decodeGarbage(self, message):
+    def decodeMessage(self, message):
         # This function decodes message by rsa keys
         try:
             cryptedmessage = message
@@ -194,7 +194,7 @@ class RSAEncoder():
         # This function checks open key existence
         return self.e is not None
 
-    def encodeGarbage(self, message):
+    def encodeMessage(self, message):
         # This function encodes message by rsa keys
         if (not self.canEncode()):
             print("Failed to encode message")
@@ -211,7 +211,7 @@ class RSAEncoder():
             cryptedmessage += self.encodeJUNK(currentChunk)
         return cryptedmessage
 
-    def encodeTrash(self, myname):
+    def encodeKeys(self, myname):
         # This function encodes public keys
         es = hex(self.e)[2:]
         ns = hex(self.n)[2:]
@@ -228,7 +228,7 @@ class RSAEncoder():
             + " " \
             + ns
 
-    def decodeTrash(self, message, myname, isPush=True):
+    def decodeKeys(self, message, myname, isPush=True):
         # This function decodes and applyes public keys
         e_ = None
         n_ = None
@@ -359,7 +359,7 @@ class DHEncoder():
             self.p, self.g, self.cnt = args
             self.key = randint(1, self.p - 1)
 
-    def encodeRubbish(self, message):
+    def encodeMessage(self, message):
         # This function encodes message by common key
         hexedMessage = strToHex(message)
         binKey = bin(self.commonKey)[2:]
@@ -374,7 +374,7 @@ class DHEncoder():
                                + "0" * length)[0:length][::-1]
         return hex(int(cryptedMessage, base=2))[2:]
 
-    def decodeRubbish(self, message):
+    def decodeMessage(self, message):
         # This function decodes message by common key
         binKey = bin(self.commonKey)[2:]
         length = len(binKey)

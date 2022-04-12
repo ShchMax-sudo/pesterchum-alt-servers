@@ -826,7 +826,7 @@ def kxhandleInput(ctx, text=None, flavor=None, chum=None, quirkable=True, convo=
         print("Server message before ->", serverMsg)
         if (chum != None): 
             print("ENcoding message")
-            serverMsg = convo.encoder.encodeMessage(serverMsg, chum.handle)
+            serverMsg = convo.encoder.encodeMessage(serverMsg)
         print("Server message after ->", serverMsg)
         print("What was sent to server ->", serverMsg)
         ctx.addMessage(clientMsg, True)
