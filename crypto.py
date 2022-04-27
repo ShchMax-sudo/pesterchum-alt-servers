@@ -1,6 +1,7 @@
 import binascii
 from random import randint, shuffle, choice
 from math import log2
+import uuid
 
 
 def int15(num):
@@ -81,10 +82,11 @@ def hexToStr(hexstr):
 class RSAEncoder():
     # This class is used to encrypt private chats
     # Rivest-Shamir-Adleman
-    chunksize = 64    # Size of chunk
-    n = None          # Module for RSA system
-    d = None          # Private key
-    e = None          # Public key
+    chunksize = 64      # Size of chunk
+    n = None            # Module for RSA system
+    d = None            # Private key
+    e = None            # Public key
+    primeSize = 512     # Bit size of key
 
     def binPow(self, a, p, n):
         # Binary power for numbers
@@ -152,10 +154,10 @@ class RSAEncoder():
 
     def rsaKeygen(self):
         # This function generates working rsa keys and modulo
-        p = self.primeGen(30, 128)
-        q = self.primeGen(30, 128)
+        p = self.primeGen(30, self.primeSize // 2)
+        q = self.primeGen(30, self.primeSize // 2)
         while (q == p):
-            q = self.primeGen(30, 128)
+            q = self.primeGen(30, self.primeSize // 2)
         n = p * q
         phi = (p - 1) * (q - 1)
         e = randint(1, phi - 1)
@@ -261,108 +263,30 @@ class RSAEncoder():
 class DHEncoder():
     # This class is used to encrypt group chats
     # Diffie-Hellman
-    cnt = None         # Count of users who have ever visited chat
-    p = None           # Prime module
-    g = None           # Primitive root
-    key = None         # Secret code
-    myKey = None       # User specified key
-    commonKey = None   # Encripting key
+    key = 0            # Secret code
+    maxkey = 1 << 256  # Count of init codes
+    blockcnt = 8       # Count of 128 bit blocks in key
 
-    def binPow(self, a, p, n):
-        # Binary power for numbers
-        res = 1
-        while (p):
-            if (p & 1):
-                res *= a
-                res %= n
-            a *= a
-            a %= n
-            p >>= 1
-        return res % n
+    def hashGen(self, code):
+        return uuid.uuid3(uuid.NAMESPACE_URL, str(code)).int
 
-    def sieveInit(self):
-        # This method returns sieve of Eratosthenes
-        # from 2 to 256
-        primeMax = 256
-        primes = []
-        sieve = [1 for i in range(primeMax + 1)]
-        for i in range(2, primeMax + 1):
-            if (sieve[i] == 1):
-                for j in range(i * i, primeMax + 1, i):
-                    sieve[j] = 0
+    def keygen(self, code):
+        self.key = self.key ^ self.hashGen(code)
 
-        for i in range(2, primeMax + 1):
-            if (sieve[i] == 1):
-                primes.append(i)
-        return primes
-
-    def generateBase(self, primes):
-        # This function generates some composite number
-        k = randint(5, 20)
-        primesq = primes[1:]
-        shuffle(primesq)
-        primesq = primesq[:k - 1]
-        ans = 2
-        for el in primesq:
-            ans *= el
-        primesq.append(2)
-        primeset = list(sorted(primesq))
-        return (ans, primeset)
-
-    def maxCnt(self, n, primeset):
-        # This function returns max prime number with which you can multiple n
-        L = 0
-        R = len(primeset)
-        while (R - L > 1):
-            m = (R + L) // 2
-            if (n * primeset[m] < (1 << 128)):
-                L = m
-            else:
-                R = m
-        return R
-
-    def generate(self, primes):
-        # This function generates prime minus 1 number
-        ker, primeset = self.generateBase(primes)
-        while (ker < (1 << 127)):
-            n = choice(primeset[:self.maxCnt(ker, primeset)])
-            ker *= n
-        return (ker, primeset)
-
-    def check(self, a, n, primeset):
-        # This is one iteration of Lucas test
-        if (self.binPow(a, n, n + 1) != 1):
-            return False
-        for exp in primeset:
-            if (self.binPow(a, n // exp, n + 1) == 1):
-                return False
-        return True
-
-    def lucasGen(self):
-        # This function generates prime number and its primitive root
-        primes = self.sieveInit()
-        while (True):
-            n, primeset = self.generate(primes)
-            for a in range(2, int(log2(n)) + 10):
-                if (self.check(a, n, primeset)):
-                    return [n + 1, a]
+    def genCode(self):
+        return randint(0, self.maxkey)
 
     def __init__(self, *args):
         # This function inits encoder
         if (len(args) == 0):
-            self.cnt = 0
-            self.p, self.g = self.lucasGen()
-            self.myKey = self.g
-            self.key = randint(1, self.p - 1)
-            self.commonKey = self.binPow(self.g, self.key, self.p)
+            self.keygen(self.genCode())
         else:
-            self.p, self.g, self.cnt = args
-            self.key = randint(1, self.p - 1)
+            self.key = args
 
     def encodeMessage(self, message):
         # This function encodes message by common key
         hexedMessage = strToHex(message)
-        binKey = bin(self.commonKey)[2:]
+        binKey = bin(self.key)[2:]
         length = len(binKey)
         binMessage = bin(int(hexedMessage, base=16))[2:]
         remainder = (length - len(binMessage) % length) % length
@@ -370,13 +294,13 @@ class DHEncoder():
         cryptedMessage = ""
         for i in range(0, len(binMessage), length):
             cryptedMessage += (bin(int(binMessage[i:i + length], base=2)
-                                   ^ self.commonKey)[2:][::-1]
+                                   ^ self.key)[2:][::-1]
                                + "0" * length)[0:length][::-1]
         return hex(int(cryptedMessage, base=2))[2:]
 
     def decodeMessage(self, message):
         # This function decodes message by common key
-        binKey = bin(self.commonKey)[2:]
+        binKey = bin(self.key)[2:]
         length = len(binKey)
         cryptedMessage = bin(int(message, base=16))[2:]
         remainder = (length - len(cryptedMessage) % length) % length
@@ -384,14 +308,16 @@ class DHEncoder():
         binMessage = ""
         for i in range(0, len(cryptedMessage), length):
             binMessage += (bin(int(cryptedMessage[i:i + length], base=2)
-                               ^ self.commonKey)[2:][::-1]
+                               ^ self.key)[2:][::-1]
                            + "0" * length)[0:length][::-1]
         return hexToStr(hex(int(binMessage, base=2))[2:])
 
-
-# It's just test polygon. Don't look on it. There are some suspicious code.
+# It's just testing polygon. Don't look on it. There are some suspicious code.
 # I don't responsible for your eyes integrity after reading this part of code.
 if __name__ == "__main__":
-    # en = DHEncoder()
-    while (True):
-        print("Hell'o word!")
+    en = DHEncoder()
+    print(en.key)
+    code = en.genCode()
+    en.keygen(code)
+    from math import log2
+    print(log2(en.key))  
