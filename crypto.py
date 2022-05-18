@@ -1,6 +1,6 @@
 import binascii
 from random import randint, shuffle, choice
-from math import log2
+from math import log2, ceil
 import uuid
 
 
@@ -264,17 +264,28 @@ class DHEncoder():
     # This class is used to encrypt group chats
     # Diffie-Hellman
     key = 0            # Secret code
-    maxkey = 1 << 256  # Count of init codes
+    maxkey = 1 << 128  # Max size of one key chunk
     blockcnt = 8       # Count of 128 bit blocks in key
 
     def hashGen(self, code):
         return uuid.uuid3(uuid.NAMESPACE_URL, str(code)).int
 
     def keygen(self, code):
-        self.key = self.key ^ self.hashGen(code)
+        prekey = 0
+        sz = ceil(len(code) / self.blockcnt)
+        for i in range(self.blockcnt):
+            prekey *= self.maxkey
+            prekey += self.hashGen(code[sz * i: min(sz * (i + 1), len(code))])
+            print(self.hashGen(code[sz * i: min(sz * (i + 1), len(code))]), "n")
+            print(code[sz * i: min(sz * (i + 1), len(code))])
+        self.key = self.key ^ prekey
 
     def genCode(self):
-        return randint(0, self.maxkey)
+        code = ""
+        for i in range(RSAEncoder.primeSize):
+            code += choice([str(i) for i in range(1, 10)]
+                           + ["a", "b", "c", "d", "e", "f"])
+        return code
 
     def __init__(self, *args):
         # This function inits encoder
@@ -282,6 +293,9 @@ class DHEncoder():
             self.keygen(self.genCode())
         else:
             self.key = args
+
+    def setKey(self, key):
+        self.key = key
 
     def encodeMessage(self, message):
         # This function encodes message by common key
@@ -319,5 +333,4 @@ if __name__ == "__main__":
     print(en.key)
     code = en.genCode()
     en.keygen(code)
-    from math import log2
-    print(log2(en.key))  
+    print(log2(en.key))
